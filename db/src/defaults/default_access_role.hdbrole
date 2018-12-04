@@ -1,0 +1,8 @@
+{
+	"role":{
+		"name": "default_access_role",
+		"schema_roles": [{
+		 "names": ["mta_python_dev_env.db.roles::mta_python_dev_env_admin"]
+		}]
+	}
+}

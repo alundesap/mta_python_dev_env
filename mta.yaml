@@ -1,3 +1,43 @@
 ID: mta_python_dev_env
 _schema-version: '2.0'
 version: 0.0.1
+
+modules:
+ - name: db
+   type: hdb
+   path: db
+   requires:
+    - name: python-dev-env-hdi
+
+## Python Module Block Begin vvv
+ - name: python
+   type: python
+   path: python
+   requires:
+    - name: python-dev-env-uaa
+    - name: python-dev-env-hdi
+   provides:
+    - name: python_api
+      properties:
+         url: ${default-url}
+## Python Module Block End ^^^
+
+ - name: web
+   type: html5
+   path: web
+   requires:
+    - name: python-dev-env-uaa
+    - name: python_api
+      group: destinations
+      properties:
+        name: python_be
+        url: ~{url}
+        forwardAuthToken: true
+
+resources:
+ - name: python-dev-env-hdi
+   properties:
+      hdi-container-name: ${service-name}
+   type: com.sap.xs.hdi-container
+ - name: python-dev-env-uaa
+   type: com.sap.xs.uaa
