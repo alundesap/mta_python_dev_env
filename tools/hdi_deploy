@@ -1,16 +1,48 @@
 #!/bin/bash
 echo ""
-echo HDI Deploy Starting
-echo ""
-pwd
-set | grep PATH
-npm config set @sap:registry "https://npm.sap.com/" ; npm config set registry "https://registry.npmjs.org/" ; npm config set strict-ssl true
-xs t -s DEV
-xs push python-dev.db -k 1024M -m 256M -p db --no-start --no-route
-xs bind-service python-dev.db python-dev-env-hdi
-xs restart python-dev.db --wait-indefinitely ; sleep 15 ; xs stop python-dev.db
-HDI_SCHEMA=$(xs env python-dev.db --export-json /dev/stdout 2>/dev/null | tail -n +5 | jq -r '.VCAP_SERVICES.hana[0].credentials.schema') ; echo "SCHEMA="$HDI_SCHEMA
-HDI_USER=$(xs env python-dev.db --export-json /dev/stdout 2>/dev/null | tail -n +5 | jq -r '.VCAP_SERVICES.hana[0].credentials.user') ; echo "USER="$HDI_USER
-HDI_PASS=$(xs env python-dev.db --export-json /dev/stdout 2>/dev/null | tail -n +5 | jq -r '.VCAP_SERVICES.hana[0].credentials.password') ; echo "PASS="$HDI_PASS
+xsorcf=$1
+org=$2
+space=$3
+dowait=""
+doexport=""
+if [ "$#" -eq 3 ]; then
+  if [ $1 = "xs" ]; then
+    dowait=" --wait-indefinitely"
+    doexport=" --export-json /dev/stdout 2>/dev/null | tail -n +5"
+    echo "XS cool."
+  else
+    if [ $1 = "cf" ]; then
+      doexport=" | tail -n +5 | head -n -8"
+      echo "CF cool."
+    else
+      echo "Not XS or CF, try again."
+      exit 1
+    fi
+  fi
+
+  echo HDI $1 Deploy into org: $2 space: $3 Starting 
+  echo ""
+  npm config set @sap:registry "https://npm.sap.com/" ; npm config set registry "https://registry.npmjs.org/" ; npm config set strict-ssl true
+#  $1 t -o $2 -s $3
+  echo $1 push python-dev_db -k 1024M -m 256M -p db --no-start --no-route
+#  $1 push python-dev_db -k 1024M -m 256M -p db --no-start --no-route
+  echo $1 bind-service python-dev_db python-dev-env-hdi
+#  $1 bind-service python-dev_db python-dev-env-hdi
+  echo $1 restart python-dev_db $dowait
+  echo sleep 15
+  echo xs stop python-dev_db
+#  $1 restart python-dev_db $dowait ; sleep 15 ; xs stop python-dev_db
+
+  if [ $1 = "xs" ]; then
+    HDI_SCHEMA=$(xs env python-dev_db --export-json /dev/stdout 2>/dev/null | tail -n +5 | jq -r '.VCAP_SERVICES.hana[0].credentials.schema')
+  else
+    HDI_SCHEMA=$(cf env python-dev_db | tail -n +5 | head -n -8 | jq -r '.VCAP_SERVICES.hana[0].credentials.schema' | head -n 1)
+  fi
+  echo "HDI_SCHEMA="$HDI_SCHEMA
+
+else
+    echo "Usage ./hdi_deploy xs[cf] org space"
+    exit 1
+fi
 echo ""
 echo HDI Deploy Finished

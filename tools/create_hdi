@@ -1,0 +1,29 @@
+#!/bin/bash
+echo ""
+xsorcf=$1
+org=$2
+space=$3
+plan="hdi-shared"
+if [ "$#" -eq 3 ]; then
+  if [ $1 = "xs" ]; then
+    echo "XS cool."
+  else
+    if [ $1 = "cf" ]; then
+      echo "CF cool."
+    else
+      echo "Not XS or CF, try again."
+      exit 1
+    fi
+  fi
+  echo $1 Create of HDI container in org: $2 space: $3 Starting
+  echo ""
+  $1 t -o $2 -s $3
+  cmd=""$1" create-service hana "$plan" python-dev-env-hdi"
+  echo "Run this command."
+  echo $cmd 
+else
+    echo "Usage ./create_hdi xs[cf] org space"
+    exit 1
+fi
+echo ""
+echo $1 Create of HDI container in org: $2 space: $3 Finished
