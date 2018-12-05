@@ -1,0 +1,16 @@
+#!/bin/bash
+echo ""
+echo HDI Deploy Starting
+echo ""
+pwd
+set | grep PATH
+npm config set @sap:registry "https://npm.sap.com/" ; npm config set registry "https://registry.npmjs.org/" ; npm config set strict-ssl true
+xs t -s DEV
+xs push python-dev.db -k 1024M -m 256M -p db --no-start --no-route
+xs bind-service python-dev.db python-dev-env-hdi
+xs restart python-dev.db --wait-indefinitely ; sleep 15 ; xs stop python-dev.db
+HDI_SCHEMA=$(xs env python-dev.db --export-json /dev/stdout 2>/dev/null | tail -n +5 | jq -r '.VCAP_SERVICES.hana[0].credentials.schema') ; echo "SCHEMA="$HDI_SCHEMA
+HDI_USER=$(xs env python-dev.db --export-json /dev/stdout 2>/dev/null | tail -n +5 | jq -r '.VCAP_SERVICES.hana[0].credentials.user') ; echo "USER="$HDI_USER
+HDI_PASS=$(xs env python-dev.db --export-json /dev/stdout 2>/dev/null | tail -n +5 | jq -r '.VCAP_SERVICES.hana[0].credentials.password') ; echo "PASS="$HDI_PASS
+echo ""
+echo HDI Deploy Finished
