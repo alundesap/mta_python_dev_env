@@ -1,18 +1,25 @@
 #!/bin/bash
 echo ""
 xsorcf=$1
-org=$2
-space=$3
+#org="HANAExpress"
+org="LCFX"
+space="DEV"
+path=$2
+proj="python-dev-env"
+app=$proj"_"$path
+host=$app"-"$path
 dowait=""
-doexport=""
-if [ "$#" -eq 3 ]; then
-  if [ $1 = "xs" ]; then
+doexport1=""
+doexport2=""
+if [ "$#" -eq 2 ]; then
+  if [ $xsorcf = "xs" ]; then
     dowait=" --wait-indefinitely"
-    doexport=" --export-json /dev/stdout 2>/dev/null | tail -n +5"
+    doexport1=" --export-json /dev/stdout 2>/dev/null | tail -n +5"
     echo "XS cool."
   else
-    if [ $1 = "cf" ]; then
-      doexport=" | tail -n +5 | head -n -8"
+    if [ $xsorcf = "cf" ]; then
+      doexport1=" | tail -n +5 | head -n -8"
+      doexport2=" | head -n -1"
       echo "CF cool."
     else
       echo "Not XS or CF, try again."
@@ -20,29 +27,78 @@ if [ "$#" -eq 3 ]; then
     fi
   fi
 
-  echo HDI $1 Deploy into org: $2 space: $3 Starting 
+  echo Client HDI $xsorcf Deploy into org: $org space: $space Starting 
   echo ""
   npm config set @sap:registry "https://npm.sap.com/" ; npm config set registry "https://registry.npmjs.org/" ; npm config set strict-ssl true
-#  $1 t -o $2 -s $3
-  echo $1 push python-dev_db -k 1024M -m 256M -p db --no-start --no-route
-#  $1 push python-dev_db -k 1024M -m 256M -p db --no-start --no-route
-  echo $1 bind-service python-dev_db python-dev-env-hdi
-#  $1 bind-service python-dev_db python-dev-env-hdi
-  echo $1 restart python-dev_db $dowait
-  echo sleep 15
-  echo xs stop python-dev_db
-#  $1 restart python-dev_db $dowait ; sleep 15 ; xs stop python-dev_db
 
-  if [ $1 = "xs" ]; then
-    HDI_SCHEMA=$(xs env python-dev_db --export-json /dev/stdout 2>/dev/null | tail -n +5 | jq -r '.VCAP_SERVICES.hana[0].credentials.schema')
-  else
-    HDI_SCHEMA=$(cf env python-dev_db | tail -n +5 | head -n -8 | jq -r '.VCAP_SERVICES.hana[0].credentials.schema' | head -n 1)
+  instance=$proj"-hdi"
+
+  cmd=$xsorcf' service '$instance
+  echo $cmd
+  eval $cmd
+  RESULT=$?
+
+  echo 'RESULT:'$RESULT
+
+  service='hana'
+  plan='hdi-shared'
+
+  if [ $RESULT -ne 0 ]; then
+    cmd=$xsorcf' create-service '$service' '$plan' '$instance
+    echo $cmd
+    eval $cmd
+
   fi
-  echo "HDI_SCHEMA="$HDI_SCHEMA
+  
+  cmd=$xsorcf' service '$instance
+  echo $cmd
+  eval $cmd
+  RESULT=$?
+
+  echo 'RESULT:'$RESULT
+
+  # Service creation is NOT assured to happen right away
+  while [ $RESULT -ne 0 ]; do
+    sleep 30
+    cmd=$xsorcf' service '$instance
+    echo $cmd
+    eval $cmd
+    RESULT=$?
+
+    echo 'RESULT:'$RESULT
+    # cf services | grep dat368-hdi | grep "create succeeded"
+  done 
+
+  cmd=$xsorcf' push '$app' -k 1024M -m 256M -p '$path' --no-start --no-route'
+  echo $cmd
+  eval $cmd
+
+  cmd=$xsorcf' bind-service '$app' '$instance
+  echo $cmd
+  eval $cmd
+
+  cmd=$xsorcf' restart '$app' '$dowait' ; sleep 20 ; '$xsorcf' stop '$app
+  echo $cmd
+  eval $cmd
+
+  cmd='HDI_SCHEMA=$('$xsorcf' env '$app' '$doexport1' | jq -r '"'"'.VCAP_SERVICES.hana[0].credentials.schema'"'"$doexport2')'
+  #echo $cmd
+  eval $cmd
+  echo 'HDI_SCHEMA='$HDI_SCHEMA
+
+  cmd='HDI_USER=$('$xsorcf' env '$app' '$doexport1' | jq -r '"'"'.VCAP_SERVICES.hana[0].credentials.user'"'"$doexport2')'
+  #echo $cmd
+  eval $cmd
+  echo 'HDI_USER='$HDI_USER
+
+  cmd='HDI_PASS=$('$xsorcf' env '$app' '$doexport1' | jq -r '"'"'.VCAP_SERVICES.hana[0].credentials.password'"'"$doexport2')'
+  #echo $cmd
+  eval $cmd
+  echo 'HDI_PASS='$HDI_PASS
 
 else
-    echo "Usage ./hdi_deploy xs[cf] org space"
+    echo "Usage ./hdi_deploy xs[cf] path"
     exit 1
 fi
 echo ""
-echo HDI Deploy Finished
+echo Client HDI Deploy Finished
