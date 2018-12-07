@@ -81,6 +81,8 @@ if [ "$#" -eq 2 ]; then
   echo $cmd
 #  eval $cmd
 
+  echo ""
+
   cmd='HDI_SCHEMA=$('$xsorcf' env '$app' '$doexport1' | jq -r '"'"'.VCAP_SERVICES.hana[0].credentials.schema'"'"$doexport2')'
   #echo $cmd
   eval $cmd
