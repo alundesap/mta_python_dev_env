@@ -1,0 +1,56 @@
+#!/bin/bash
+echo ""
+xsorcf=$1
+org=$2
+space=$3
+dowait=""
+doexport=""
+if [ "$#" -eq 3 ]; then
+  if [ $1 = "xs" ]; then
+    dowait=" --wait-indefinitely"
+    doexport=" --export-json /dev/stdout 2>/dev/null | tail -n +5"
+    echo "XS cool."
+  else
+    if [ $1 = "cf" ]; then
+      doexport=" | tail -n +5 | head -n -8"
+      echo "CF cool."
+    else
+      echo "Not XS or CF, try again."
+      exit 1
+    fi
+  fi
+
+  echo Python $1 Deploy into org: $2 space: $3 Starting 
+  echo ""
+
+cf push python-dev_python -k 1024M -m 256M -n python-dev-python -p python --no-start
+xs push python-dev_python -k 1024M -m 256M -n python -p python --no-start
+
+cf bind-service python-dev_python python-dev-env-hdi
+xs bind-service python-dev_python python-dev-env-hdi
+
+cf bind-service python-dev_python python-dev-env-uaa
+xs bind-service python-dev_python python-dev-env-uaa
+
+cf start python-dev_python
+xs start python-dev_python
+
+xs app python-ml.python --urls
+
+  npm config set @sap:registry "https://npm.sap.com/" ; npm config set registry "https://registry.npmjs.org/" ; npm config set strict-ssl true
+#  $1 t -o $2 -s $3
+  echo $1 push python-dev_web -k 1024M -m 256M -p db --no-start
+#  $1 push python-dev_db -k 1024M -m 256M -p db --no-start
+  echo $1 bind-service python-dev_web python-dev-env-uaa
+#  $1 bind-service python-dev_web python-dev-env-uaa
+  echo $1 restart python-dev_web $dowait
+  echo sleep 15
+  echo xs stop python-dev_web
+#  $1 restart python-dev_web $dowait ; sleep 15 ; xs stop python-dev_db
+
+else
+    echo "Usage ./hdi_deploy xs[cf] org space"
+    exit 1
+fi
+echo ""
+echo Python Deploy Finished
