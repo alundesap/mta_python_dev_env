@@ -50,7 +50,7 @@ if [ "$#" -eq 2 ]; then
 
   fi
   
-  cmd=$xsorcf' service '$instance
+  cmd=$xsorcf' services | grep '$instance
   echo $cmd
   eval $cmd
   RESULT=$?
@@ -60,7 +60,7 @@ if [ "$#" -eq 2 ]; then
   # Service creation is NOT assured to happen right away
   while [ $RESULT -ne 0 ]; do
     sleep 30
-    cmd=$xsorcf' service '$instance
+    cmd=$xsorcf' services | grep '$instance
     echo $cmd
     eval $cmd
     RESULT=$?
