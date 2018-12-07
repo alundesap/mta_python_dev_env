@@ -33,7 +33,7 @@ if [ "$#" -eq 2 ]; then
 
   instance=$proj"-hdi"
 
-  cmd=$xsorcf' service '$instance
+  cmd=$xsorcf' services | grep '$instance
   echo $cmd
   eval $cmd
   RESULT=$?
