@@ -71,15 +71,15 @@ if [ "$#" -eq 2 ]; then
 
   cmd=$xsorcf' push '$app' -k 1024M -m 256M -p '$path' --no-start --no-route'
   echo $cmd
-  eval $cmd
+#  eval $cmd
 
   cmd=$xsorcf' bind-service '$app' '$instance
   echo $cmd
-  eval $cmd
+#  eval $cmd
 
   cmd=$xsorcf' restart '$app' '$dowait' ; sleep 20 ; '$xsorcf' stop '$app
   echo $cmd
-  eval $cmd
+#  eval $cmd
 
   cmd='HDI_SCHEMA=$('$xsorcf' env '$app' '$doexport1' | jq -r '"'"'.VCAP_SERVICES.hana[0].credentials.schema'"'"$doexport2')'
   #echo $cmd
@@ -95,6 +95,28 @@ if [ "$#" -eq 2 ]; then
   #echo $cmd
   eval $cmd
   echo 'HDI_PASS='$HDI_PASS
+
+  # Call the HDI stored proc that enables granting of the container to the SYSTEM user
+  echo ""
+  echo "Enter hdbsql interactive mode with this."
+  echo ""
+  cmd="hdbsql -i 00 -n parvus.lcfx.net:30015 -d HXE -u "$HDI_USER" -p "$HDI_PASS
+  echo $cmd
+  echo ""
+  echo ""
+  echo "Execute these commands in hdbsql interactive console."
+  echo ""
+  echo "SET SCHEMA "'"'"$HDI_SCHEMA"'"'";"
+  echo "CALL "'"'"mta_python_dev_env::grant_role"'"'"('SYSTEM','mta_python_dev_env_admin',?);"
+  echo "\q"
+  echo ""
+  echo ""
+  echo "If you see the following message."
+  echo ""
+  echo "Granted role"$HDI_SCHEMA".mta_python_dev_env_admin to SYSTEM"
+  echo ""
+  echo "Then the SYSTEM user can access the HDI container with schema name: "$HDI_SCHEMA" in eclipse."
+  echo ""
 
 else
     echo "Usage ./hdi_deploy xs[cf] path"
