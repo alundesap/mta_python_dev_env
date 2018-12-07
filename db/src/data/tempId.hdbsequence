@@ -1,5 +1,5 @@
-SEQUENCE "mta_python_dev_env.db.data::tempId"
+SEQUENCE "data::tempId"
 INCREMENT BY 1
 START WITH 2
 RESET BY
-SELECT IFNULL(MAX("tempId"), 0) + 1 FROM "mta_python_dev_env.db.data::sensors.temp"
+SELECT IFNULL(MAX("tempId"), 0) + 1 FROM "data::sensors.temp"

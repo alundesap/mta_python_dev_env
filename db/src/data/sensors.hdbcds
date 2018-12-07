@@ -1,4 +1,4 @@
-namespace mta_python_dev_env.db.data;
+namespace data;
 
 context sensors{
 	type KeyType : Integer;
