@@ -119,6 +119,10 @@ if [ "$#" -eq 2 ]; then
   echo ""
   echo "Then the SYSTEM user can access the HDI container with schema name: "$HDI_SCHEMA" in eclipse."
   echo ""
+  echo "See the steps above for granting access to the container."
+  echo 'HDI_SCHEMA='$HDI_SCHEMA
+  echo 'HDI_USER='$HDI_USER
+  echo 'HDI_PASS='$HDI_PASS
 
 else
     echo "Usage ./hdi_deploy xs[cf] path"
