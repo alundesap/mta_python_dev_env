@@ -2,4 +2,16 @@
 <projectDescription>
 	<name>mta_python_dev_env_proj</name>
 	<comment>Multi-Target Application of simple Python app to test setting up eclipse for a development environment.</comment>
+        <projects>
+        </projects>
+        <buildSpec>
+                <buildCommand>
+                        <name>org.python.pydev.PyDevBuilder</name>
+                        <arguments>
+                        </arguments>
+                </buildCommand>
+        </buildSpec>
+        <natures>
+                <nature>org.python.pydev.pythonNature</nature>
+        </natures>
 </projectDescription>
