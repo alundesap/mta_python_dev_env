@@ -25,6 +25,7 @@ if [ "$#" -eq 3 ]; then
   cmd=""$1" create-service xsuaa "$plan" python-dev-env-uaa"$config
   echo "Run this command."
   echo $cmd 
+  eval $cmd 
 else
     echo "Usage ./create_uaa xs[cf] org space"
     exit 1

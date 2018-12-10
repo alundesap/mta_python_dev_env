@@ -1,18 +1,26 @@
 #!/bin/bash
 echo ""
 xsorcf=$1
-org=$2
-space=$3
+#org="HANAExpress"
+org="LCFX"
+#space="delvelopment"
+space="DEV"
+path=$2
+proj="python-dev-env"
+app=$proj"_"$path
+host=$app"-"$path
 dowait=""
-doexport=""
-if [ "$#" -eq 3 ]; then
-  if [ $1 = "xs" ]; then
+doexport1=""
+doexport2=""
+if [ "$#" -eq 2 ]; then
+  if [ $xsorcf = "xs" ]; then
     dowait=" --wait-indefinitely"
-    doexport=" --export-json /dev/stdout 2>/dev/null | tail -n +5"
+    doexport1=" --export-json /dev/stdout 2>/dev/null | tail -n +5"
     echo "XS cool."
   else
-    if [ $1 = "cf" ]; then
-      doexport=" | tail -n +5 | head -n -8"
+    if [ $xsorcf = "cf" ]; then
+      doexport1=" | tail -n +5 | head -n -8"
+      doexport2=" | head -n -1"
       echo "CF cool."
     else
       echo "Not XS or CF, try again."
@@ -20,37 +28,48 @@ if [ "$#" -eq 3 ]; then
     fi
   fi
 
-  echo Python $1 Deploy into org: $2 space: $3 Starting 
+  echo Client Python $xsorcf Deploy into org: $org space: $space Starting 
   echo ""
 
-cf push python-dev_python -k 1024M -m 256M -n python-dev-python -p python --no-start
-xs push python-dev_python -k 1024M -m 256M -n python -p python --no-start
+  cmd=$xsorcf' push '$app' -k 1024M -m 256M -p '$path' --no-start'
+  echo $cmd
+  eval $cmd
 
-cf bind-service python-dev_python python-dev-env-hdi
-xs bind-service python-dev_python python-dev-env-hdi
+  uaa_instance=$proj"-uaa"
+  hdi_instance=$proj"-hdi"
 
-cf bind-service python-dev_python python-dev-env-uaa
-xs bind-service python-dev_python python-dev-env-uaa
+  cmd=$xsorcf' bind-service '$app' '$uaa_instance
+  echo $cmd
+  eval $cmd
 
-cf start python-dev_python
-xs start python-dev_python
+  cmd=$xsorcf' bind-service '$app' '$hdi_instance
+  echo $cmd
+  eval $cmd
 
-xs app python-ml.python --urls
+  cmd=$xsorcf' restart '$app' '$dowait
+  echo $cmd
+  eval $cmd
 
-  npm config set @sap:registry "https://npm.sap.com/" ; npm config set registry "https://registry.npmjs.org/" ; npm config set strict-ssl true
-#  $1 t -o $2 -s $3
-  echo $1 push python-dev_web -k 1024M -m 256M -p db --no-start
-#  $1 push python-dev_db -k 1024M -m 256M -p db --no-start
-  echo $1 bind-service python-dev_web python-dev-env-uaa
-#  $1 bind-service python-dev_web python-dev-env-uaa
-  echo $1 restart python-dev_web $dowait
-  echo sleep 15
-  echo xs stop python-dev_web
-#  $1 restart python-dev_web $dowait ; sleep 15 ; xs stop python-dev_db
+  echo ""
+
+  cmd='HDI_SCHEMA=$('$xsorcf' env '$app' '$doexport1' | jq -r '"'"'.VCAP_SERVICES.hana[0].credentials.schema'"'"$doexport2')'
+  #echo $cmd
+  eval $cmd
+  echo 'HDI_SCHEMA='$HDI_SCHEMA
+
+  cmd='HDI_USER=$('$xsorcf' env '$app' '$doexport1' | jq -r '"'"'.VCAP_SERVICES.hana[0].credentials.user'"'"$doexport2')'
+  #echo $cmd
+  eval $cmd
+  echo 'HDI_USER='$HDI_USER
+
+  cmd='HDI_PASS=$('$xsorcf' env '$app' '$doexport1' | jq -r '"'"'.VCAP_SERVICES.hana[0].credentials.password'"'"$doexport2')'
+  #echo $cmd
+  eval $cmd
+  echo 'HDI_PASS='$HDI_PASS
 
 else
-    echo "Usage ./hdi_deploy xs[cf] org space"
+    echo "Usage ./py_deploy xs[cf] path"
     exit 1
 fi
 echo ""
-echo Python Deploy Finished
+echo Client HDI Deploy Finished
