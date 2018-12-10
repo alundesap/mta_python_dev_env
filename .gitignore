@@ -4,3 +4,6 @@ sap_dependencies/
 tools/mta.jar
 .mta/
 python/vendor/
+target/
+node_modules/
+package-lock.json

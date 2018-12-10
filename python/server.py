@@ -95,6 +95,11 @@ def unauth_db_only():
     port = hana.credentials['port']
     user = hana.credentials['user']
     password = hana.credentials['password']
+
+    # The certificate will available for HANA service instances that require an encrypted connection
+    # Note: This was tested to work with python hdbcli-2.3.112 tar.gz package not hdbcli-2.3.14 provided in XS_PYTHON00_0-70003433.ZIP  
+    if 'certificate' in hana.credentials:
+        haascert = hana.credentials['certificate']
     
     output += 'schema: ' + schema + '\n'
     output += 'host: ' + host + '\n'
@@ -103,13 +108,35 @@ def unauth_db_only():
     output += 'pass: ' + password + '\n'
 
 #    # Connect to the python HANA DB driver using the connection info
-#    connection = pyhdb.connect(host,int(port),user,password)
-    connection = dbapi.connect(host,int(port),user,password)
-#    connection = dbapi.connect(addresst=host,port=int(port),user=user,password=password)
+# User for HANA as a Service instances
+    if 'certificate' in hana.credentials:
+        connection = dbapi.connect(
+            address=host,
+            port=int(port),
+            user=user,
+            password=password,
+            currentSchema=schema,
+            encrypt="true",
+            sslValidateCertificate="true",
+            sslCryptoProvider="openssl",
+            sslTrustStore=haascert
+        )
+    else:
+        connection = dbapi.connect(
+            address=host,
+            port=int(port),
+            user=user,
+            password=password,
+            currentSchema=schema
+        )
+ 
+
 #    # Prep a cursor for SQL execution
     cursor = connection.cursor()
+
 #    # Form an SQL statement to retrieve some data
-    cursor.execute('SELECT "tempId", "tempVal", "ts", "created" FROM "' + schema + '"."DAT368.db.data::sensors.temp"')
+    cursor.execute('SELECT "tempId", "tempVal", "ts", "created" FROM "data::sensors.temp"')
+
 #    # Execute the SQL and capture the result set
     sensor_vals = cursor.fetchall()
 #
@@ -121,7 +148,8 @@ def unauth_db_only():
     connection.close()
 #
     # Return the results
-    return output
+    # return output
+    return Response(output, mimetype='text/plain')
 
 # If there is a request for a python/test2, return Testing message and then check JWT and connect to the data service and retrieve some data
 @app.route('/auth_python/db_valid')
@@ -265,5 +293,8 @@ def auth_db_valid():
 
 if __name__ == '__main__':
     # Run the app, listening on all IPs with our chosen port number
-    app.run(host='0.0.0.0', port=port)
+    # Use this for production 
+    #app.run(host='0.0.0.0', port=port)
+    # Use this for debugging 
+    app.run(debug=True, host='0.0.0.0', port=port)
 

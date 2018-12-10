@@ -1,6 +1,7 @@
 #!/bin/bash
 echo ""
 xsorcf=$1
+#Customize the org and space to your own situation
 #org="HANAExpress"
 org="LCFX"
 #space="delvelopment"
