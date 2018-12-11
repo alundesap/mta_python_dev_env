@@ -138,7 +138,6 @@ def dump_pyenv():
     if jsonok:
         output += "JSON is OK" + '\n'
         tuples = [tuple(x) for x in jsonok]
-        attach(5678,"localhost")
     else:
         output += "JSON is NOT OK" + '\n'
     output += 'VCAP_SERVICES: ' + str(os.getenv("VCAP_SERVICES", 0)) + '\n'
@@ -147,6 +146,13 @@ def dump_pyenv():
     output += 'user: ' + hana.credentials['user'] + '\n'
     output += 'pass: ' + hana.credentials['password'] + '\n'
     output += '\n'
+    return output
+
+@app.route('/python/attach')
+def do_attach():
+    output = '\n Attaching to debugger... \n'
+    attach(5678,"localhost")
+    output += '\n Set some breakpoints...\n'
     return output
 
 # If there is a request for a python/test2, return Testing message and then check JWT and connect to the data service and retrieve some data
