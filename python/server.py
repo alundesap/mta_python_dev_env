@@ -119,6 +119,12 @@ def unauth_post():
 @app.route('/python/set_env')
 def set_pyenv():
     output = '\n Set Environment variable... \n'
+    if request.args.get('PATHS_FROM_ECLIPSE_TO_PYTHON'):
+        output += request.args.get('PATHS_FROM_ECLIPSE_TO_PYTHON')
+        os.environ["PATHS_FROM_ECLIPSE_TO_PYTHON"] = request.args.get('PATHS_FROM_ECLIPSE_TO_PYTHON')
+        output += '\n'
+        output += 'Eclipse paths set for debugging.\n'
+        output += '\n'
     output += '\n'
     return Response(output, mimetype='text/plain' , status=200,)
 
@@ -127,8 +133,12 @@ def dump_pyenv():
     output = '\n Key Environment variables... \n'
     output += 'PYTHONHOME: ' + str(os.getenv("PYTHONHOME", 0)) + '\n'
     output += 'PYTHONPATH: ' + str(os.getenv("PYTHONPATH", 0)) + '\n'
-    os.environ["PATHS_FROM_ECLIPSE_TO_PYTHON"] = "[['/Users/i830671/git/mta_python_dev_env/python','/home/vcap/app']]"
     output += 'PATHS_FROM_ECLIPSE_TO_PYTHON: ' + str(os.getenv("PATHS_FROM_ECLIPSE_TO_PYTHON", 0)) + '\n'
+    jsonok = json.loads(os.environ.get('PATHS_FROM_ECLIPSE_TO_PYTHON', '[]'))
+    if jsonok:
+        output += "JSON is OK" + '\n'
+    else:
+        output += "JSON is NOT OK" + '\n'
     output += 'VCAP_SERVICES: ' + str(os.getenv("VCAP_SERVICES", 0)) + '\n'
     output += 'host: ' + hana.credentials['host'] + '\n'
     output += 'port: ' + hana.credentials['port'] + '\n'
