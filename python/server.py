@@ -4,6 +4,8 @@ Author: Andrew Lunde
 """
 from flask import Flask
 from flask import request
+from flask import Response
+
 from flask import send_from_directory
 #   
 import os
@@ -100,6 +102,25 @@ def python_links():
 @app.route('/python/test')
 def unauth_test():
     return 'Python UnAuthorized Test, Yo! <br />\nI am instance ' + str(os.getenv("CF_INSTANCE_INDEX", 0))
+
+@app.route('/python/post', methods=['POST'])
+def unauth_post():
+    output = 'Python Post to DB (Dangerous!). \n'
+    output += '\n'
+    output += 'Receiving module should check that it came from our approuter and verify or abort if otherwise.\n'
+    output += '\n'
+
+    content = request.json
+
+    output += content
+
+    return Response(output, mimetype='application/json' , status=201,)
+
+@app.route('/python/set_env')
+def set_pyenv():
+    output = '\n Set Environment variable... \n'
+    output += '\n'
+    return Response(output, mimetype='text/plain' , status=200,)
 
 @app.route('/python/env')
 def dump_pyenv():
