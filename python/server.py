@@ -137,6 +137,8 @@ def dump_pyenv():
     jsonok = json.loads(os.environ.get('PATHS_FROM_ECLIPSE_TO_PYTHON', '[]'))
     if jsonok:
         output += "JSON is OK" + '\n'
+        tuples = [tuple(x) for x in jsonok]
+        attach(5678,"localhost")
     else:
         output += "JSON is NOT OK" + '\n'
     output += 'VCAP_SERVICES: ' + str(os.getenv("VCAP_SERVICES", 0)) + '\n'
@@ -153,7 +155,6 @@ def unauth_db_only():
     output = 'Python UnAuthorized DB Only. \n'
     #Enable to trigger debugging
     os.environ["PATHS_FROM_ECLIPSE_TO_PYTHON"] = "[['/Users/i830671/git/mta_python_dev_env/python','/home/vcap/app']]"
-    attach(5678,"localhost")
     output += '\n'
     output += 'Receiving module should check that it came from our approuter and verify or abort if otherwise.\n'
     output += '\n'
