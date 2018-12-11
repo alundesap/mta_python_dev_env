@@ -101,11 +101,27 @@ def python_links():
 def unauth_test():
     return 'Python UnAuthorized Test, Yo! <br />\nI am instance ' + str(os.getenv("CF_INSTANCE_INDEX", 0))
 
+@app.route('/python/env')
+def dump_pyenv():
+    output = '\n Key Environment variables... \n'
+    output += 'PYTHONHOME: ' + str(os.getenv("PYTHONHOME", 0)) + '\n'
+    output += 'PYTHONPATH: ' + str(os.getenv("PYTHONPATH", 0)) + '\n'
+    os.environ["PATHS_FROM_ECLIPSE_TO_PYTHON"] = "[['/Users/i830671/git/mta_python_dev_env/python','/home/vcap/app']]"
+    output += 'PATHS_FROM_ECLIPSE_TO_PYTHON: ' + str(os.getenv("PATHS_FROM_ECLIPSE_TO_PYTHON", 0)) + '\n'
+    output += 'VCAP_SERVICES: ' + str(os.getenv("VCAP_SERVICES", 0)) + '\n'
+    output += 'host: ' + hana.credentials['host'] + '\n'
+    output += 'port: ' + hana.credentials['port'] + '\n'
+    output += 'user: ' + hana.credentials['user'] + '\n'
+    output += 'pass: ' + hana.credentials['password'] + '\n'
+    output += '\n'
+    return output
+
 # If there is a request for a python/test2, return Testing message and then check JWT and connect to the data service and retrieve some data
 @app.route('/python/db_only')
 def unauth_db_only():
     output = 'Python UnAuthorized DB Only. \n'
     #Enable to trigger debugging
+    os.environ["PATHS_FROM_ECLIPSE_TO_PYTHON"] = "[['/Users/i830671/git/mta_python_dev_env/python','/home/vcap/app']]"
     attach(5678,"localhost")
     output += '\n'
     output += 'Receiving module should check that it came from our approuter and verify or abort if otherwise.\n'
