@@ -23,7 +23,7 @@ if [ "$#" -eq 3 ]; then
   echo ""
   $1 t -o $2 -s $3
   cmd=""$1" create-service xsuaa "$plan" python-dev-env-uaa"$config
-  echo "Run this command."
+  echo "Running this command."
   echo $cmd 
   eval $cmd 
 else

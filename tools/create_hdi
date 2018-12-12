@@ -19,8 +19,9 @@ if [ "$#" -eq 3 ]; then
   echo ""
   $1 t -o $2 -s $3
   cmd=""$1" create-service hana "$plan" python-dev-env-hdi"
-  echo "Run this command."
+  echo "Running this command."
   echo $cmd 
+  eval $cmd 
 else
     echo "Usage ./create_hdi xs[cf] org space"
     exit 1

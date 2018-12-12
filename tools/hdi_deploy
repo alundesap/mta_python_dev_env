@@ -1,16 +1,31 @@
 #!/bin/bash
 echo ""
 xsorcf=$1
+#Adjust the org and space to fit your target destination
+#For HXE
 #org="HANAExpress"
-org="LCFX"
-space="DEV"
+#
+#org="LCFX"
+org="A-Team_ml"
+#
+#For HXE
+#space="development"
+#
+#space="DEV"
+space="ml"
 path=$2
 proj="python-dev-env"
 app=$proj"_"$path
 host=$app"-"$path
+ops="--no-start --no-route"
 dowait=""
 doexport1=""
 doexport2=""
+#Adjust the hdbhostport and hdbopts to fit your host details
+#hdbhostport="parvus.lcfx.net:30015"
+#hdbopts="-i 00 -d HXE"
+hdbhostport="zeus.hana.prod.us-east-1.whitney.dbaas.ondemand.com:20217"
+hdbopts="-e"
 if [ "$#" -eq 2 ]; then
   if [ $xsorcf = "xs" ]; then
     dowait=" --wait-indefinitely"
@@ -18,8 +33,18 @@ if [ "$#" -eq 2 ]; then
     echo "XS cool."
   else
     if [ $xsorcf = "cf" ]; then
-      doexport1=" | tail -n +5 | head -n -8"
-      doexport2=" | head -n -1"
+      ops=$ops" -u none"
+      dowait=" "
+
+      #Linux
+      #doexport1=" | tail -n +5 | head -n -8"
+      #MacOS
+      doexport1=" | tail -n +5 | tail -r | tail -n +10 | tail -r"
+
+      #Linux
+      #doexport2=" | head -n 1"
+      #MacOS
+      doexport2=" | head -n 1"
       echo "CF cool."
     else
       echo "Not XS or CF, try again."
@@ -69,7 +94,7 @@ if [ "$#" -eq 2 ]; then
     # cf services | grep dat368-hdi | grep "create succeeded"
   done 
 
-  cmd=$xsorcf' push '$app' -k 1024M -m 256M -p '$path' --no-start --no-route'
+  cmd=$xsorcf' push '$app' -k 1024M -m 256M -p '$path' '$ops
   echo $cmd
 #  eval $cmd
 
@@ -77,9 +102,16 @@ if [ "$#" -eq 2 ]; then
   echo $cmd
 #  eval $cmd
 
-  cmd=$xsorcf' restart '$app' '$dowait' ; sleep 20 ; '$xsorcf' stop '$app
-  echo $cmd
-#  eval $cmd
+  if [ $xsorcf = "xs" ]; then
+    cmd=$xsorcf' restart '$app' '$dowait' ; sleep 20 ; '$xsorcf' stop '$app
+    echo $cmd
+#    eval $cmd
+  else
+    cmd=$xsorcf' restart '$app' '$dowait
+    echo $cmd
+#    eval $cmd
+    echo 'Stop '$app' once it has finished.'
+  fi
 
   echo ""
 
@@ -102,7 +134,7 @@ if [ "$#" -eq 2 ]; then
   echo ""
   echo "Enter hdbsql interactive mode with this."
   echo ""
-  cmd="hdbsql -i 00 -n parvus.lcfx.net:30015 -d HXE -u "$HDI_USER" -p "$HDI_PASS
+  cmd="hdbsql -n "$hdbhostport" "$hdbopts" -u "$HDI_USER" -p "$HDI_PASS
   echo $cmd
   echo ""
   echo ""

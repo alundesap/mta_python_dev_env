@@ -1,11 +1,18 @@
 #!/bin/bash
 echo ""
 xsorcf=$1
-#Customize the org and space to your own situation
+#Adjust the org and space to fit your target destination
+#For HXE
 #org="HANAExpress"
-org="LCFX"
-#space="delvelopment"
-space="DEV"
+#
+#org="LCFX"
+org="A-Team_ml"
+#
+#For HXE
+#space="development"
+#
+#space="DEV"
+space="ml"
 path=$2
 proj="python-dev-env"
 app=$proj"_"$path
@@ -20,8 +27,18 @@ if [ "$#" -eq 2 ]; then
     echo "XS cool."
   else
     if [ $xsorcf = "cf" ]; then
-      doexport1=" | tail -n +5 | head -n -8"
-      doexport2=" | head -n -1"
+      ops=$ops" -u none"
+      dowait=" "
+
+      #Linux
+      #doexport1=" | tail -n +5 | head -n -8"
+      #MacOS
+      doexport1=" | tail -n +5 | tail -r | tail -n +10 | tail -r"
+
+      #Linux
+      #doexport2=" | head -n 1"
+      #MacOS
+      doexport2=" | head -n 1"
       echo "CF cool."
     else
       echo "Not XS or CF, try again."
